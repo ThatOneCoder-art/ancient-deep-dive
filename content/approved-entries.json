@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "generatedAt": null,
+  "eras": {
+    "precambrian": { "plants": [], "animals": [] },
+    "paleozoic": { "plants": [], "animals": [] },
+    "mesozoic": { "plants": [], "animals": [] },
+    "cenozoic": { "plants": [], "animals": [] },
+    "quaternary": { "plants": [], "animals": [] }
+  }
+}

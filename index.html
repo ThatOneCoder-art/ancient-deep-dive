@@ -112,6 +112,8 @@
     .editor-message { min-height: 16px; margin: 0; color: var(--rust); font-size: 12px; }
     .editor-toolbar { display: flex; justify-content: space-between; align-items: center; gap: 15px; margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--line); }
     .editor-status { color: var(--muted); font-size: 11px; line-height: 1.45; }
+    .publish-button { padding: 0; color: var(--moss); background: none; border: 0; cursor: pointer; font: 500 10px 'DM Mono', monospace; letter-spacing: .05em; text-transform: uppercase; }
+    .publish-button:hover { color: var(--rust); }
     .logout-button { padding: 0; color: var(--muted); background: none; border: 0; cursor: pointer; font: 500 10px 'DM Mono', monospace; text-transform: uppercase; }
     .logout-button:hover { color: var(--rust); }
     .editor-view { display: none; }
@@ -137,6 +139,11 @@
     .delete-entry { flex: 0 0 auto; padding: 4px 0; color: var(--rust); background: none; border: 0; cursor: pointer; font: 500 10px 'DM Mono', monospace; letter-spacing: .05em; text-transform: uppercase; }
     .delete-entry:hover { color: var(--ink); }
     .managed-empty { margin: 0; color: var(--muted); font-size: 12px; }
+    .managed-name { min-width: 0; }
+    .managed-state { display: block; margin-top: 3px; color: var(--muted); font: 500 9px 'DM Mono', monospace; letter-spacing: .06em; text-transform: uppercase; }
+    .managed-state.pending { color: var(--rust); }
+    .approve-entry { flex: 0 0 auto; padding: 4px 0; color: var(--moss); background: none; border: 0; cursor: pointer; font: 500 10px 'DM Mono', monospace; letter-spacing: .05em; text-transform: uppercase; }
+    .approve-entry:hover { color: var(--rust); }
 
     .principles { padding: 78px 0; color: var(--paper); background: var(--moss); }
     .principles-grid { display: grid; grid-template-columns: 1fr 2fr; gap: 80px; }
@@ -268,7 +275,7 @@
       <div class="editor-view" id="editor-view">
         <div class="eyebrow mono">Editor unlocked</div>
         <h2>Add to the record.</h2>
-        <p class="modal-intro">Add a plant or animal and a short note. It will appear in the selected era and stay saved in this browser.</p>
+        <p class="modal-intro">Add a plant or animal and a full wiki article. New entries stay private until you approve them below.</p>
         <form class="editor-form" id="entry-form">
           <label for="entry-era">Era <select id="entry-era"><option value="precambrian">Precambrian</option><option value="paleozoic">Paleozoic</option><option value="mesozoic">Mesozoic</option><option value="cenozoic">Cenozoic</option><option value="quaternary">Quaternary</option></select></label>
           <label for="entry-type">Category <select id="entry-type"><option value="plants">Plant / producer</option><option value="animals">Animal / consumer</option></select></label>
@@ -277,13 +284,13 @@
           <label for="entry-image">Picture <input id="entry-image" type="file" accept="image/*" /></label>
           <p class="file-note">Optional. Images are saved in this browser with your article.</p>
           <p class="editor-message" id="entry-message" role="status"></p>
-          <button class="editor-submit" type="submit">Add to this era</button>
+          <button class="editor-submit" type="submit">Submit for approval</button>
         </form>
         <section class="entry-manager" aria-labelledby="manager-title">
           <div class="manager-heading"><span class="mono" id="manager-title">Manage this era</span><select id="manage-era" aria-label="Era to manage"><option value="precambrian">Precambrian</option><option value="paleozoic">Paleozoic</option><option value="mesozoic">Mesozoic</option><option value="cenozoic">Cenozoic</option><option value="quaternary">Quaternary</option></select></div>
           <div id="managed-entries"></div>
         </section>
-        <div class="editor-toolbar"><span class="editor-status">Saved only on this browser.</span><button class="logout-button" type="button">Lock editor</button></div>
+        <div class="editor-toolbar"><span class="editor-status">Approve entries, then export the publish package.</span><button class="publish-button" type="button">Export approved</button><button class="logout-button" type="button">Lock editor</button></div>
       </div>
     </div>
   </div>
@@ -367,11 +374,25 @@
     const wikiBody = document.querySelector('#wiki-body');
     const manageEra = document.querySelector('#manage-era');
     const managedEntries = document.querySelector('#managed-entries');
+    const publishButton = document.querySelector('.publish-button');
     let editorUnlocked = false;
     let activeEraKey = 'precambrian';
     const normalizeEntry = entry => {
       const normalized = typeof entry === 'string' ? { name: entry } : entry;
-      return { ...normalized, info: normalized.info || wikiDescriptions[normalized.name] || 'This entry is part of the field record for this era.' };
+      return { ...normalized, status: normalized.status || 'approved', info: normalized.info || wikiDescriptions[normalized.name] || 'This entry is part of the field record for this era.' };
+    };
+    const mergePublishedEntries = publishedData => {
+      Object.entries(publishedData.eras || {}).forEach(([eraKey, publishedEra]) => {
+        if (!eras[eraKey]) return;
+        ['plants', 'animals'].forEach(category => {
+          (publishedEra[category] || []).forEach(publishedEntry => {
+            const entry = { ...publishedEntry, status: 'approved' };
+            const existingIndex = eras[eraKey][category].findIndex(item => normalizeEntry(item).name === entry.name);
+            if (existingIndex === -1) eras[eraKey][category].push(entry);
+            else if (normalizeEntry(eras[eraKey][category][existingIndex]).status === 'pending') eras[eraKey][category][existingIndex] = entry;
+          });
+        });
+      });
     };
     const renderManagedEntries = eraKey => {
       const era = eras[eraKey];
@@ -388,15 +409,38 @@
           empty.textContent = 'No entries in this category.';
           group.append(empty);
         } else era[category].forEach((entry, entryIndex) => {
+          const item = normalizeEntry(entry);
           const row = document.createElement('div');
           row.className = 'managed-entry';
-          row.append(normalizeEntry(entry).name);
+          const name = document.createElement('div');
+          name.className = 'managed-name';
+          name.append(item.name);
+          const state = document.createElement('span');
+          state.className = `managed-state ${item.status === 'pending' ? 'pending' : ''}`;
+          state.textContent = item.status === 'pending' ? 'Awaiting approval' : 'Approved · visible on this page';
+          name.append(state);
+          row.append(name);
+          const actions = document.createElement('div');
+          if (item.status === 'pending') {
+            const approveButton = document.createElement('button');
+            approveButton.className = 'approve-entry';
+            approveButton.type = 'button';
+            approveButton.textContent = 'Approve';
+            approveButton.addEventListener('click', () => {
+              item.status = 'approved';
+              era[category][entryIndex] = item;
+              localStorage.setItem(storageKey, JSON.stringify(eras));
+              setEra(eraKey);
+              entryMessage.textContent = 'Entry approved and added to the public wiki on this page.';
+            });
+            actions.append(approveButton);
+          }
           const deleteButton = document.createElement('button');
           deleteButton.className = 'delete-entry';
           deleteButton.type = 'button';
           deleteButton.textContent = 'Delete';
           deleteButton.addEventListener('click', () => {
-            if (!window.confirm(`Delete ${normalizeEntry(entry).name} from ${era.name}?`)) return;
+            if (!window.confirm(`Delete ${item.name} from ${era.name}?`)) return;
             const removed = era[category].splice(entryIndex, 1)[0];
             try { localStorage.setItem(storageKey, JSON.stringify(eras)); } catch (error) {
               era[category].splice(entryIndex, 0, removed);
@@ -406,7 +450,8 @@
             setEra(eraKey);
             entryMessage.textContent = 'Entry deleted from your field notes.';
           });
-          row.append(deleteButton);
+          actions.append(deleteButton);
+          row.append(actions);
           group.append(row);
         });
         return group;
@@ -416,6 +461,7 @@
       const list = document.querySelector(selector);
       list.replaceChildren(...entries.map((entry, entryIndex) => {
         const item = normalizeEntry(entry);
+        if (item.status !== 'approved') return null;
         const listItem = document.createElement('li');
         const link = document.createElement('button');
         link.className = 'wiki-link';
@@ -428,7 +474,7 @@
         link.addEventListener('click', () => openWiki(activeEraKey, category, entryIndex));
         listItem.append(link);
         return listItem;
-      }));
+      }).filter(Boolean));
     };
     const openWiki = (eraKey, category, entryIndex) => {
       const era = eras[eraKey];
@@ -520,7 +566,7 @@
       const imageFile = document.querySelector('#entry-image').files[0];
       let image = '';
       try { image = await readImage(imageFile); } catch (error) { entryMessage.textContent = 'The picture could not be read.'; return; }
-      const newEntry = { name, info, image };
+      const newEntry = { name, info, image, status: 'pending' };
       era[category].push(newEntry);
       try { localStorage.setItem(storageKey, JSON.stringify(eras)); } catch (error) {
         era[category].pop();
@@ -530,10 +576,32 @@
       setEra(entryEra.value);
       event.target.reset();
       entryEra.value = Object.keys(eras).find(key => eras[key] === era);
-      entryMessage.textContent = 'Added as a wiki article.';
+      entryMessage.textContent = 'Submitted for approval. It stays hidden until you approve it.';
     });
     document.querySelector('.logout-button').addEventListener('click', () => { editorUnlocked = false; closeModal(); });
+    publishButton.addEventListener('click', () => {
+      const approvedData = { version: 1, generatedAt: new Date().toISOString(), eras: {} };
+      Object.entries(eras).forEach(([eraKey, era]) => {
+        approvedData.eras[eraKey] = {};
+        ['plants', 'animals'].forEach(category => {
+          approvedData.eras[eraKey][category] = era[category]
+            .filter(entry => typeof entry !== 'string' && normalizeEntry(entry).status === 'approved')
+            .map(entry => normalizeEntry(entry));
+        });
+      });
+      const download = document.createElement('a');
+      download.href = URL.createObjectURL(new Blob([JSON.stringify(approvedData, null, 2)], { type: 'application/json' }));
+      download.download = 'approved-entries.json';
+      download.click();
+      URL.revokeObjectURL(download.href);
+      entryMessage.textContent = 'Approved package downloaded for publishing.';
+    });
     setEra('precambrian');
+    fetch('content/approved-entries.json')
+      .then(response => response.ok ? response.json() : { eras: {} })
+      .then(mergePublishedEntries)
+      .then(() => setEra(activeEraKey))
+      .catch(() => {});
   </script>
 </body>
 </html>

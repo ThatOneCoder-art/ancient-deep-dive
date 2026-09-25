@@ -1,0 +1,58 @@
+name: Publish approved content
+
+on:
+  workflow_dispatch:
+    inputs:
+      approved_content:
+        description: Paste the contents of approved-entries.json exported from the private editor
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  validate-and-publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out site
+        uses: actions/checkout@v4
+
+      - name: Validate and write approved content
+        env:
+          APPROVED_CONTENT: ${{ inputs.approved_content }}
+        run: |
+          node <<'NODE'
+          const fs = require('fs');
+          const path = 'content/approved-entries.json';
+          const allowedEras = ['precambrian', 'paleozoic', 'mesozoic', 'cenozoic', 'quaternary'];
+          const content = JSON.parse(process.env.APPROVED_CONTENT);
+          if (content.version !== 1 || !content.eras || typeof content.eras !== 'object') {
+            throw new Error('The publish package must use version 1 and include eras.');
+          }
+          for (const era of allowedEras) {
+            const data = content.eras[era];
+            if (!data || !Array.isArray(data.plants) || !Array.isArray(data.animals)) {
+              throw new Error(`Invalid plants or animals list for ${era}.`);
+            }
+            for (const entry of [...data.plants, ...data.animals]) {
+              if (!entry || typeof entry.name !== 'string' || !entry.name.trim() || typeof entry.info !== 'string') {
+                throw new Error(`Invalid entry in ${era}.`);
+              }
+              if (entry.image && typeof entry.image !== 'string') throw new Error(`Invalid image for ${entry.name}.`);
+            }
+          }
+          fs.writeFileSync(path, JSON.stringify({ version: 1, generatedAt: new Date().toISOString(), eras: content.eras }, null, 2) + '\n');
+          NODE
+
+      - name: Commit approved content
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add content/approved-entries.json
+          if git diff --cached --quiet; then
+            echo "No approved content changes to publish."
+          else
+            git commit -m "Publish approved prehistoric entries"
+            git push
+          fi
