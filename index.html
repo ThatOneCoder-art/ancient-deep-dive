@@ -90,6 +90,10 @@
     .next-button span { display: grid; place-items: center; width: 34px; height: 34px; border: 1px solid var(--ink); border-radius: 50%; transition: background .2s, color .2s; }
     .next-button:hover span { color: var(--paper); background: var(--ink); }
     .entry-info { display: block; margin: -3px 0 5px 21px; color: var(--muted); font: 12px/1.45 Manrope, sans-serif; }
+    .wiki-link { display: block; width: 100%; padding: 8px 0; color: var(--ink); text-align: left; background: none; border: 0; border-top: 1px solid rgba(32, 38, 31, .1); cursor: pointer; font: 500 17px Fraunces, serif; }
+    .wiki-link::before { content: '↳'; margin-right: 8px; color: var(--rust); font-family: Manrope, sans-serif; }
+    .wiki-link:hover { color: var(--rust); }
+    .wiki-link .entry-info { padding-left: 0; }
 
     .modal-backdrop { position: fixed; z-index: 10; inset: 0; display: grid; place-items: center; padding: 22px; background: rgba(20, 29, 23, .72); opacity: 0; pointer-events: none; transition: opacity .2s; }
     .modal-backdrop.open { opacity: 1; pointer-events: auto; }
@@ -112,6 +116,27 @@
     .logout-button:hover { color: var(--rust); }
     .editor-view { display: none; }
     .editor-view.visible { display: block; }
+    .wiki-modal { position: relative; width: min(100%, 760px); max-height: min(820px, 92vh); overflow: auto; padding: 42px 48px 48px; color: var(--ink); background: var(--paper); box-shadow: 0 30px 90px rgba(0, 0, 0, .28); transform: translateY(12px); transition: transform .2s; }
+    .modal-backdrop.open .wiki-modal { transform: translateY(0); }
+    .wiki-modal h2 { margin: 12px 0 8px; font: 600 clamp(42px, 7vw, 72px)/.92 Fraunces, serif; letter-spacing: -.05em; }
+    .wiki-meta { margin-bottom: 28px; color: var(--rust); }
+    .wiki-image { display: block; width: 100%; max-height: 340px; margin: 0 0 30px; object-fit: cover; background: #e4eadc; }
+    .wiki-image.hidden { display: none; }
+    .wiki-body { max-width: 620px; margin: 0; color: #394238; white-space: pre-wrap; font-size: 16px; line-height: 1.8; }
+    .wiki-back { margin-top: 30px; padding: 0; color: var(--muted); background: none; border: 0; cursor: pointer; font: 500 10px 'DM Mono', monospace; letter-spacing: .07em; text-transform: uppercase; }
+    .wiki-back:hover { color: var(--rust); }
+    .editor-form textarea.long-note { min-height: 220px; }
+    .editor-form input[type="file"] { padding: 9px; font-size: 12px; }
+    .file-note { margin: -7px 0 0; color: var(--muted); font-size: 11px; line-height: 1.45; }
+    .entry-manager { margin-top: 28px; padding-top: 22px; border-top: 1px solid var(--line); }
+    .manager-heading { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin-bottom: 15px; }
+    .manager-heading select { max-width: 180px; padding: 7px 8px; color: var(--ink); background: #ebe7dc; border: 1px solid var(--line); font: 12px Manrope, sans-serif; }
+    .managed-group + .managed-group { margin-top: 15px; }
+    .managed-group-title { margin: 0 0 6px; color: var(--muted); font: 500 10px 'DM Mono', monospace; letter-spacing: .07em; text-transform: uppercase; }
+    .managed-entry { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 9px 0; border-top: 1px solid rgba(32, 38, 31, .1); font: 500 16px Fraunces, serif; }
+    .delete-entry { flex: 0 0 auto; padding: 4px 0; color: var(--rust); background: none; border: 0; cursor: pointer; font: 500 10px 'DM Mono', monospace; letter-spacing: .05em; text-transform: uppercase; }
+    .delete-entry:hover { color: var(--ink); }
+    .managed-empty { margin: 0; color: var(--muted); font-size: 12px; }
 
     .principles { padding: 78px 0; color: var(--paper); background: var(--moss); }
     .principles-grid { display: grid; grid-template-columns: 1fr 2fr; gap: 80px; }
@@ -152,6 +177,7 @@
       .footer-inner { display: block; }
       .footer-inner span:last-child { display: block; margin-top: 7px; }
       .editor-modal { padding: 28px 22px; }
+      .wiki-modal { padding: 34px 22px; }
     }
   </style>
 </head>
@@ -247,13 +273,31 @@
           <label for="entry-era">Era <select id="entry-era"><option value="precambrian">Precambrian</option><option value="paleozoic">Paleozoic</option><option value="mesozoic">Mesozoic</option><option value="cenozoic">Cenozoic</option><option value="quaternary">Quaternary</option></select></label>
           <label for="entry-type">Category <select id="entry-type"><option value="plants">Plant / producer</option><option value="animals">Animal / consumer</option></select></label>
           <label for="entry-name">Name <input id="entry-name" type="text" maxlength="60" placeholder="e.g. Glossopteris" required /></label>
-          <label for="entry-info">About it <textarea id="entry-info" maxlength="220" placeholder="A short note about its habitat, form, or role..." required></textarea></label>
+          <label for="entry-info">Wiki article <textarea class="long-note" id="entry-info" placeholder="Write as much as you need about its habitat, form, behavior, fossil record, or role..." required></textarea></label>
+          <label for="entry-image">Picture <input id="entry-image" type="file" accept="image/*" /></label>
+          <p class="file-note">Optional. Images are saved in this browser with your article.</p>
           <p class="editor-message" id="entry-message" role="status"></p>
           <button class="editor-submit" type="submit">Add to this era</button>
         </form>
+        <section class="entry-manager" aria-labelledby="manager-title">
+          <div class="manager-heading"><span class="mono" id="manager-title">Manage this era</span><select id="manage-era" aria-label="Era to manage"><option value="precambrian">Precambrian</option><option value="paleozoic">Paleozoic</option><option value="mesozoic">Mesozoic</option><option value="cenozoic">Cenozoic</option><option value="quaternary">Quaternary</option></select></div>
+          <div id="managed-entries"></div>
+        </section>
         <div class="editor-toolbar"><span class="editor-status">Saved only on this browser.</span><button class="logout-button" type="button">Lock editor</button></div>
       </div>
     </div>
+  </div>
+
+  <div class="modal-backdrop" id="wiki-modal" role="dialog" aria-modal="true" aria-labelledby="wiki-title">
+    <article class="wiki-modal">
+      <button class="modal-close" type="button" aria-label="Close article">×</button>
+      <div class="eyebrow mono">Deep Time field wiki</div>
+      <h2 id="wiki-title">Entry</h2>
+      <div class="wiki-meta mono" id="wiki-meta"></div>
+      <img class="wiki-image hidden" id="wiki-image" alt="" />
+      <p class="wiki-body" id="wiki-body"></p>
+      <button class="wiki-back" type="button">← Back to the era</button>
+    </article>
   </div>
 
   <footer><div class="shell footer-inner"><span class="mono">Deep Time / A visual field guide</span><span>Made for the endlessly curious · Dates are approximate</span></div></footer>
@@ -268,13 +312,45 @@
     };
 
     const tabs = [...document.querySelectorAll('.era-tab')];
-    const approvedUsernames = ['owner'];
+    const approvedUsernames = ['owner', 'theowner'];
     const storageKey = 'deep-time-private-eras';
     const passcodeKey = 'deep-time-private-passcode';
     const savedEras = localStorage.getItem(storageKey);
     if (savedEras) {
       try { Object.assign(eras, JSON.parse(savedEras)); } catch (error) { localStorage.removeItem(storageKey); }
     }
+    const wikiDescriptions = {
+      'Cyanobacteria': 'Cyanobacteria are ancient photosynthetic bacteria that helped oxygenate Earth\'s atmosphere. Their layered mineral structures, called stromatolites, are among the oldest evidence of life.',
+      'Algae & stromatolites': 'Algal communities lived in shallow water and built stromatolites by trapping sediment. They were important early producers in marine ecosystems.',
+      'Early single-celled life': 'Single-celled life dominated Earth for most of its history. These small organisms developed the chemistry and cellular structures that made later complexity possible.',
+      'Microscopic eukaryotes': 'Eukaryotes have cells with a nucleus and internal compartments. Their arrival introduced new ways for cells to specialize and cooperate.',
+      'Ediacaran soft-bodies': 'Ediacaran organisms were soft-bodied forms that lived in the seafloor communities before the Cambrian explosion. Many had unusual body plans with no clear modern equivalent.',
+      'Early jelly-like forms': 'Simple drifting and seafloor animals appeared before animals evolved hard shells or skeletons. Their delicate bodies rarely fossilized.',
+      'Giant club mosses': 'Giant club mosses formed towering forests during the Carboniferous. Their buried remains contributed to the coal beds that humans later mined.',
+      'Ferns & horsetails': 'Ferns and horsetails thrived in the humid Paleozoic forests. Their descendants still grow today, though the ancient forms could reach tree height.',
+      'Seed ferns': 'Seed ferns combined fern-like leaves with seeds, allowing them to reproduce away from standing water. They were common across late Paleozoic landscapes.',
+      'Trilobites': 'Trilobites were marine arthropods with segmented bodies and compound eyes. They survived for hundreds of millions of years before disappearing in the end-Permian extinction.',
+      'Early amphibians': 'Early amphibians were among the first vertebrates to move onto land. They still depended on water for reproduction and kept a close connection to wetlands.',
+      'Dimetrodon': 'Dimetrodon was a sail-backed synapsid, not a dinosaur. Its sail may have helped with display or temperature regulation, though its exact function remains debated.',
+      'Conifers & cycads': 'Conifers and cycads were major Mesozoic plants. Their tough leaves and seed-based reproduction helped them survive in a range of drier habitats.',
+      'Ginkgoes': 'Ginkgoes have fan-shaped leaves and a lineage that reaches back to the Mesozoic. One living species, Ginkgo biloba, is the last surviving member of its group.',
+      'First flowering plants': 'Flowering plants evolved flowers and enclosed seeds. Their partnership with insects helped them spread widely and reshape terrestrial ecosystems.',
+      'Stegosaurus': 'Stegosaurus was a plant-eating dinosaur with paired plates along its back and four long spikes on its tail. It lived during the Late Jurassic.',
+      'Tyrannosaurus rex': 'Tyrannosaurus rex was a large, powerful predator from the end of the Cretaceous. Its massive skull and serrated teeth were built for crushing and tearing flesh.',
+      'Archaeopteryx': 'Archaeopteryx combined feathers and wings with teeth, claws, and a long bony tail. It is an important fossil for understanding the transition from dinosaurs to birds.',
+      'Flowering grasslands': 'Grasslands expanded across the Cenozoic as climates cooled and dried. Their open habitats encouraged grazing animals and new forms of movement.',
+      'Oaks & broadleaf forests': 'Broadleaf trees became widespread in warm and temperate Cenozoic forests. Their leaves, nuts, and fruits supported increasingly diverse animal communities.',
+      'Modern flowering plants': 'Modern flowering plants occupy nearly every terrestrial habitat. Their diversity comes from long relationships with pollinators, herbivores, fungi, and changing climates.',
+      'Early horses': 'Early horses began as small, many-toed forest browsers. Over time, some lineages evolved taller bodies, single-toed feet, and teeth suited to grazing.',
+      'Woolly rhinoceros': 'Woolly rhinoceroses were large Ice Age grazers with thick fur and a prominent nasal horn. They lived across the cold grasslands of northern Eurasia.',
+      'Sabre-toothed cats': 'Sabre-toothed cats had elongated upper canines and powerful forelimbs. Different species hunted in forests and open habitats over millions of years.',
+      'Tundra grasses': 'Tundra grasses survived repeated cold cycles and short growing seasons. They formed part of the low vegetation that fed large Ice Age herbivores.',
+      'Conifers': 'Conifers are seed plants with needle-like leaves and cones. Their ability to withstand cold and dry conditions made them important Quaternary trees.',
+      'Modern plant communities': 'Modern plant communities are shaped by climate, disturbance, migration, and human activity. They are the living layer of the current moment in deep time.',
+      'Woolly mammoths': 'Woolly mammoths were elephant relatives adapted to cold steppe environments. Their long fur, fat reserves, and curved tusks helped them survive Ice Age conditions.',
+      'Giant ground sloths': 'Giant ground sloths were large herbivorous mammals that lived in the Americas. Some species stood on their hind legs to reach leaves and branches.',
+      'Homo sapiens': 'Homo sapiens evolved in Africa and later spread across every continent. We are the only human species alive today, but our story is only a very recent layer.'
+    };
     const modal = document.querySelector('.modal-backdrop');
     const trigger = document.querySelector('.editor-trigger');
     const authView = document.querySelector('#auth-view');
@@ -284,25 +360,96 @@
     const authMessage = document.querySelector('#auth-message');
     const entryMessage = document.querySelector('#entry-message');
     const entryEra = document.querySelector('#entry-era');
+    const wikiModal = document.querySelector('#wiki-modal');
+    const wikiTitle = document.querySelector('#wiki-title');
+    const wikiMeta = document.querySelector('#wiki-meta');
+    const wikiImage = document.querySelector('#wiki-image');
+    const wikiBody = document.querySelector('#wiki-body');
+    const manageEra = document.querySelector('#manage-era');
+    const managedEntries = document.querySelector('#managed-entries');
     let editorUnlocked = false;
-    const showList = (selector, entries) => {
+    let activeEraKey = 'precambrian';
+    const normalizeEntry = entry => {
+      const normalized = typeof entry === 'string' ? { name: entry } : entry;
+      return { ...normalized, info: normalized.info || wikiDescriptions[normalized.name] || 'This entry is part of the field record for this era.' };
+    };
+    const renderManagedEntries = eraKey => {
+      const era = eras[eraKey];
+      managedEntries.replaceChildren(...['plants', 'animals'].map(category => {
+        const group = document.createElement('div');
+        group.className = 'managed-group';
+        const heading = document.createElement('h4');
+        heading.className = 'managed-group-title';
+        heading.textContent = category === 'plants' ? 'Plants / producers' : 'Animals / consumers';
+        group.append(heading);
+        if (!era[category].length) {
+          const empty = document.createElement('p');
+          empty.className = 'managed-empty';
+          empty.textContent = 'No entries in this category.';
+          group.append(empty);
+        } else era[category].forEach((entry, entryIndex) => {
+          const row = document.createElement('div');
+          row.className = 'managed-entry';
+          row.append(normalizeEntry(entry).name);
+          const deleteButton = document.createElement('button');
+          deleteButton.className = 'delete-entry';
+          deleteButton.type = 'button';
+          deleteButton.textContent = 'Delete';
+          deleteButton.addEventListener('click', () => {
+            if (!window.confirm(`Delete ${normalizeEntry(entry).name} from ${era.name}?`)) return;
+            const removed = era[category].splice(entryIndex, 1)[0];
+            try { localStorage.setItem(storageKey, JSON.stringify(eras)); } catch (error) {
+              era[category].splice(entryIndex, 0, removed);
+              entryMessage.textContent = 'Could not save this deletion.';
+              return;
+            }
+            setEra(eraKey);
+            entryMessage.textContent = 'Entry deleted from your field notes.';
+          });
+          row.append(deleteButton);
+          group.append(row);
+        });
+        return group;
+      }));
+    };
+    const showList = (selector, entries, category) => {
       const list = document.querySelector(selector);
-      list.replaceChildren(...entries.map(entry => {
-        const item = typeof entry === 'string' ? { name: entry, info: '' } : entry;
+      list.replaceChildren(...entries.map((entry, entryIndex) => {
+        const item = normalizeEntry(entry);
         const listItem = document.createElement('li');
-        listItem.append(item.name);
-        if (item.info) {
-          const detail = document.createElement('span');
-          detail.className = 'entry-info';
-          detail.textContent = item.info;
-          listItem.append(detail);
-        }
+        const link = document.createElement('button');
+        link.className = 'wiki-link';
+        link.type = 'button';
+        link.append(item.name);
+        const detail = document.createElement('span');
+        detail.className = 'entry-info';
+        detail.textContent = `${item.info.slice(0, 115)}${item.info.length > 115 ? '…' : ''}`;
+        link.append(detail);
+        link.addEventListener('click', () => openWiki(activeEraKey, category, entryIndex));
+        listItem.append(link);
         return listItem;
       }));
+    };
+    const openWiki = (eraKey, category, entryIndex) => {
+      const era = eras[eraKey];
+      const item = normalizeEntry(era[category][entryIndex]);
+      wikiTitle.textContent = item.name;
+      wikiMeta.textContent = `${category === 'plants' ? 'Plant / producer' : 'Animal / consumer'} · ${era.name}`;
+      wikiBody.textContent = item.info;
+      if (item.image) {
+        wikiImage.src = item.image;
+        wikiImage.alt = item.name;
+        wikiImage.classList.remove('hidden');
+      } else {
+        wikiImage.removeAttribute('src');
+        wikiImage.classList.add('hidden');
+      }
+      wikiModal.classList.add('open');
     };
     const setEra = (key) => {
       const era = eras[key];
       const index = Object.keys(eras).indexOf(key);
+      activeEraKey = key;
       document.querySelector('.era-name').textContent = era.name;
       document.querySelector('.era-date').textContent = era.date;
       document.querySelector('.era-count').textContent = era.count;
@@ -310,12 +457,15 @@
       document.querySelector('.visual-subtitle').textContent = era.subtitle;
       document.querySelector('.era-note').textContent = era.note;
       document.querySelector('.era-visual').style.setProperty('--era-image', `url('${era.image}')`);
-      showList('.plants', era.plants);
-      showList('.animals', era.animals);
+      showList('.plants', era.plants, 'plants');
+      showList('.animals', era.animals, 'animals');
       entryEra.value = key;
+      manageEra.value = key;
+      renderManagedEntries(key);
       tabs.forEach((tab, tabIndex) => { const active = tabIndex === index; tab.classList.toggle('active', active); tab.setAttribute('aria-selected', active); });
     };
     tabs.forEach(tab => tab.addEventListener('click', () => setEra(tab.dataset.era)));
+    manageEra.addEventListener('change', () => setEra(manageEra.value));
     document.querySelector('.next-button').addEventListener('click', () => setEra(Object.keys(eras)[(Object.keys(eras).indexOf(tabs.find(tab => tab.classList.contains('active')).dataset.era) + 1) % 5]));
     const openModal = () => {
       modal.classList.add('open');
@@ -334,6 +484,10 @@
     trigger.addEventListener('click', openModal);
     document.querySelector('.modal-close').addEventListener('click', closeModal);
     modal.addEventListener('click', event => { if (event.target === modal) closeModal(); });
+    const closeWiki = () => wikiModal.classList.remove('open');
+    wikiModal.querySelector('.modal-close').addEventListener('click', closeWiki);
+    wikiModal.querySelector('.wiki-back').addEventListener('click', closeWiki);
+    wikiModal.addEventListener('click', event => { if (event.target === wikiModal) closeWiki(); });
     document.querySelector('#auth-form').addEventListener('submit', event => {
       event.preventDefault();
       const username = document.querySelector('#username-input').value.trim().toLowerCase();
@@ -350,16 +504,33 @@
         openModal();
       } else authMessage.textContent = 'That passcode does not match.';
     });
-    document.querySelector('#entry-form').addEventListener('submit', event => {
+    const readImage = file => new Promise((resolve, reject) => {
+      if (!file) { resolve(''); return; }
+      const reader = new FileReader();
+      reader.addEventListener('load', () => resolve(reader.result));
+      reader.addEventListener('error', reject);
+      reader.readAsDataURL(file);
+    });
+    document.querySelector('#entry-form').addEventListener('submit', async event => {
       event.preventDefault();
       const era = eras[entryEra.value];
       const category = document.querySelector('#entry-type').value;
-      era[category].push({ name: document.querySelector('#entry-name').value.trim(), info: document.querySelector('#entry-info').value.trim() });
-      localStorage.setItem(storageKey, JSON.stringify(eras));
+      const name = document.querySelector('#entry-name').value.trim();
+      const info = document.querySelector('#entry-info').value.trim();
+      const imageFile = document.querySelector('#entry-image').files[0];
+      let image = '';
+      try { image = await readImage(imageFile); } catch (error) { entryMessage.textContent = 'The picture could not be read.'; return; }
+      const newEntry = { name, info, image };
+      era[category].push(newEntry);
+      try { localStorage.setItem(storageKey, JSON.stringify(eras)); } catch (error) {
+        era[category].pop();
+        entryMessage.textContent = 'This picture is too large for browser storage. Try a smaller image.';
+        return;
+      }
       setEra(entryEra.value);
       event.target.reset();
       entryEra.value = Object.keys(eras).find(key => eras[key] === era);
-      entryMessage.textContent = 'Added to your field notes.';
+      entryMessage.textContent = 'Added as a wiki article.';
     });
     document.querySelector('.logout-button').addEventListener('click', () => { editorUnlocked = false; closeModal(); });
     setEra('precambrian');
