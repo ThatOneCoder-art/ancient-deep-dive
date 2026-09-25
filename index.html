@@ -1,0 +1,368 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="A visual field guide to prehistoric eras and the life that shaped them." />
+  <title>Deep Time | A field guide to prehistoric life</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --ink: #20261f;
+      --muted: #6d7467;
+      --paper: #f5f1e8;
+      --moss: #354b3c;
+      --fern: #66816a;
+      --rust: #b55b3b;
+      --sun: #ddbd70;
+      --line: rgba(32, 38, 31, .15);
+      --shadow: 0 24px 60px rgba(37, 45, 34, .12);
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body { margin: 0; color: var(--ink); background: var(--paper); font-family: Manrope, sans-serif; }
+    button { font: inherit; }
+    .shell { max-width: 1280px; margin: auto; padding: 0 42px; }
+    .mono { font: 500 11px/1.3 'DM Mono', monospace; letter-spacing: .08em; text-transform: uppercase; }
+    .eyebrow { color: var(--rust); }
+
+    header { position: absolute; z-index: 3; inset: 0 0 auto; color: #f5f1e8; }
+    .nav { display: flex; align-items: center; justify-content: space-between; height: 84px; border-bottom: 1px solid rgba(245, 241, 232, .28); }
+    .brand { display: flex; align-items: center; gap: 11px; color: inherit; text-decoration: none; font: 600 18px Fraunces, serif; }
+    .brand-mark { display: grid; place-items: center; width: 29px; height: 29px; border: 1px solid rgba(245, 241, 232, .7); border-radius: 50%; font-size: 15px; }
+    .nav-links { display: flex; gap: 30px; }
+    .nav-links a { color: rgba(245, 241, 232, .8); text-decoration: none; font-size: 12px; }
+    .nav-links a:hover { color: #fff; }
+    .editor-trigger { display: inline-flex; align-items: center; gap: 8px; padding: 9px 12px; color: #f5f1e8; background: rgba(245, 241, 232, .1); border: 1px solid rgba(245, 241, 232, .45); border-radius: 2px; cursor: pointer; font: 500 10px 'DM Mono', monospace; letter-spacing: .07em; text-transform: uppercase; }
+    .editor-trigger:hover { background: rgba(245, 241, 232, .2); }
+
+    .hero { position: relative; min-height: 690px; color: #f5f1e8; overflow: hidden; background: #24382f; }
+    .hero::before { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, rgba(21, 34, 27, .94) 0%, rgba(21, 34, 27, .65) 46%, rgba(21, 34, 27, .2) 100%), url('https://images.unsplash.com/photo-1511497584788-876760111969?auto=format&fit=crop&w=2200&q=85') center/cover; filter: saturate(.75); }
+    .hero::after { content: ''; position: absolute; inset: auto 0 0; height: 130px; background: linear-gradient(transparent, var(--paper)); opacity: .5; }
+    .hero-inner { position: relative; z-index: 1; display: flex; align-items: flex-end; min-height: 690px; padding-top: 140px; padding-bottom: 122px; }
+    .hero-copy { max-width: 700px; }
+    h1, h2, h3, p { margin-top: 0; }
+    h1 { max-width: 650px; margin-bottom: 22px; font: 600 clamp(55px, 7vw, 104px)/.92 Fraunces, serif; letter-spacing: -.045em; }
+    .hero-copy p { max-width: 520px; margin-bottom: 34px; color: rgba(245, 241, 232, .78); font-size: 16px; line-height: 1.65; }
+    .hero-meta { display: flex; align-items: center; gap: 18px; }
+    .scroll-cue { display: inline-flex; align-items: center; gap: 10px; color: rgba(245, 241, 232, .8); text-decoration: none; }
+    .scroll-cue span { display: grid; place-items: center; width: 33px; height: 33px; border: 1px solid rgba(245, 241, 232, .55); border-radius: 50%; }
+
+    main { position: relative; z-index: 2; }
+    .explorer { margin-top: -1px; padding: 77px 0 105px; }
+    .section-intro { display: flex; justify-content: space-between; align-items: end; gap: 40px; margin-bottom: 42px; }
+    .section-intro h2 { max-width: 590px; margin-bottom: 0; font: 600 clamp(37px, 5vw, 62px)/.96 Fraunces, serif; letter-spacing: -.04em; }
+    .section-intro p { max-width: 340px; margin-bottom: 4px; color: var(--muted); font-size: 14px; line-height: 1.65; }
+
+    .timeline { display: grid; grid-template-columns: repeat(5, 1fr); border-top: 1px solid var(--ink); border-bottom: 1px solid var(--line); }
+    .era-tab { position: relative; display: flex; flex-direction: column; gap: 14px; min-height: 136px; padding: 22px 18px 19px; color: var(--muted); text-align: left; background: none; border: 0; border-right: 1px solid var(--line); cursor: pointer; transition: color .2s, background .2s; }
+    .era-tab:first-child { border-left: 1px solid var(--line); }
+    .era-tab:hover, .era-tab.active { color: var(--ink); background: #ede8dc; }
+    .era-tab.active::before { content: ''; position: absolute; top: -2px; left: 0; right: 0; height: 3px; background: var(--rust); }
+    .era-tab .tab-name { font: 600 22px Fraunces, serif; }
+    .era-tab .tab-age { margin-top: auto; font-size: 11px; }
+    .era-tab .tab-index { color: var(--rust); }
+
+    .era-panel { display: grid; grid-template-columns: 1.02fr 1.4fr; min-height: 480px; margin-top: 45px; background: #e4eadc; overflow: hidden; box-shadow: var(--shadow); }
+    .era-visual { position: relative; min-height: 480px; padding: 34px; color: #f5f1e8; display: flex; flex-direction: column; justify-content: space-between; overflow: hidden; background: var(--moss); }
+    .era-visual::before { content: ''; position: absolute; inset: 0; background: var(--era-image) center/cover; opacity: .48; mix-blend-mode: multiply; filter: saturate(.7); }
+    .era-visual::after { content: ''; position: absolute; inset: 0; background: linear-gradient(145deg, rgba(25, 46, 34, .15), rgba(25, 46, 34, .85)); }
+    .visual-top, .visual-bottom { position: relative; z-index: 1; }
+    .visual-top { display: flex; justify-content: space-between; }
+    .visual-bottom h3 { max-width: 390px; margin: 0 0 12px; font: 600 48px/.98 Fraunces, serif; letter-spacing: -.04em; }
+    .visual-bottom p { max-width: 390px; margin: 0; color: rgba(245, 241, 232, .78); font-size: 13px; line-height: 1.6; }
+
+    .era-info { display: grid; grid-template-rows: auto 1fr auto; padding: 40px 45px 35px; }
+    .era-heading { display: flex; align-items: end; justify-content: space-between; gap: 20px; padding-bottom: 27px; border-bottom: 1px solid var(--line); }
+    .era-heading h2 { margin: 0; font: 600 42px/.95 Fraunces, serif; letter-spacing: -.04em; }
+    .era-heading .date { color: var(--rust); text-align: right; }
+    .facts { display: grid; grid-template-columns: 1fr 1fr; gap: 27px; padding: 29px 0; }
+    .fact h4 { margin: 0 0 14px; color: var(--muted); font: 500 11px 'DM Mono', monospace; text-transform: uppercase; letter-spacing: .07em; }
+    .fact ul { margin: 0; padding: 0; list-style: none; }
+    .fact li { padding: 8px 0; border-top: 1px solid rgba(32, 38, 31, .1); font: 500 17px Fraunces, serif; }
+    .fact li::before { content: '↳'; margin-right: 8px; color: var(--rust); font-family: Manrope, sans-serif; }
+    .era-footer { display: flex; align-items: center; justify-content: space-between; padding-top: 22px; border-top: 1px solid var(--line); }
+    .era-footer p { max-width: 410px; margin: 0; color: var(--muted); font-size: 12px; line-height: 1.55; }
+    .next-button { display: flex; align-items: center; gap: 10px; padding: 0; color: var(--ink); background: none; border: 0; cursor: pointer; }
+    .next-button span { display: grid; place-items: center; width: 34px; height: 34px; border: 1px solid var(--ink); border-radius: 50%; transition: background .2s, color .2s; }
+    .next-button:hover span { color: var(--paper); background: var(--ink); }
+    .entry-info { display: block; margin: -3px 0 5px 21px; color: var(--muted); font: 12px/1.45 Manrope, sans-serif; }
+
+    .modal-backdrop { position: fixed; z-index: 10; inset: 0; display: grid; place-items: center; padding: 22px; background: rgba(20, 29, 23, .72); opacity: 0; pointer-events: none; transition: opacity .2s; }
+    .modal-backdrop.open { opacity: 1; pointer-events: auto; }
+    .editor-modal { position: relative; width: min(100%, 560px); max-height: min(720px, 92vh); overflow: auto; padding: 34px; color: var(--ink); background: var(--paper); box-shadow: 0 30px 90px rgba(0, 0, 0, .28); transform: translateY(12px); transition: transform .2s; }
+    .modal-backdrop.open .editor-modal { transform: translateY(0); }
+    .modal-close { position: absolute; top: 21px; right: 22px; display: grid; place-items: center; width: 32px; height: 32px; color: var(--ink); background: none; border: 1px solid var(--line); border-radius: 50%; cursor: pointer; }
+    .editor-modal h2 { max-width: 360px; margin: 10px 0 10px; font: 600 39px/.95 Fraunces, serif; letter-spacing: -.04em; }
+    .modal-intro { max-width: 420px; margin-bottom: 25px; color: var(--muted); font-size: 12px; line-height: 1.6; }
+    .editor-form { display: grid; gap: 15px; }
+    .editor-form label { display: grid; gap: 7px; color: var(--muted); font: 500 10px 'DM Mono', monospace; letter-spacing: .07em; text-transform: uppercase; }
+    .editor-form input, .editor-form select, .editor-form textarea { width: 100%; padding: 12px; color: var(--ink); background: #ebe7dc; border: 1px solid var(--line); border-radius: 1px; font: 14px Manrope, sans-serif; }
+    .editor-form textarea { min-height: 92px; resize: vertical; }
+    .editor-form input:focus, .editor-form select:focus, .editor-form textarea:focus { outline: 2px solid var(--rust); outline-offset: 1px; }
+    .editor-submit { justify-self: start; margin-top: 4px; padding: 12px 17px; color: var(--paper); background: var(--moss); border: 0; cursor: pointer; font: 500 11px 'DM Mono', monospace; letter-spacing: .07em; text-transform: uppercase; }
+    .editor-submit:hover { background: var(--rust); }
+    .editor-message { min-height: 16px; margin: 0; color: var(--rust); font-size: 12px; }
+    .editor-toolbar { display: flex; justify-content: space-between; align-items: center; gap: 15px; margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--line); }
+    .editor-status { color: var(--muted); font-size: 11px; line-height: 1.45; }
+    .logout-button { padding: 0; color: var(--muted); background: none; border: 0; cursor: pointer; font: 500 10px 'DM Mono', monospace; text-transform: uppercase; }
+    .logout-button:hover { color: var(--rust); }
+    .editor-view { display: none; }
+    .editor-view.visible { display: block; }
+
+    .principles { padding: 78px 0; color: var(--paper); background: var(--moss); }
+    .principles-grid { display: grid; grid-template-columns: 1fr 2fr; gap: 80px; }
+    .principles h2 { margin: 0; font: 600 clamp(38px, 4vw, 58px)/.95 Fraunces, serif; letter-spacing: -.04em; }
+    .principles-intro { max-width: 255px; color: rgba(245, 241, 232, .7); font-size: 13px; line-height: 1.65; }
+    .principle-list { display: grid; grid-template-columns: repeat(3, 1fr); gap: 32px; }
+    .principle { padding-top: 19px; border-top: 1px solid rgba(245, 241, 232, .35); }
+    .principle-number { color: var(--sun); }
+    .principle h3 { margin: 32px 0 10px; font: 600 25px Fraunces, serif; }
+    .principle p { margin: 0; color: rgba(245, 241, 232, .7); font-size: 12px; line-height: 1.65; }
+
+    footer { padding: 28px 0; color: var(--muted); font-size: 11px; }
+    .footer-inner { display: flex; justify-content: space-between; }
+
+    @media (max-width: 820px) {
+      .shell { padding: 0 22px; }
+      .nav-links { display: none; }
+      .nav > .mono { display: none; }
+      .hero, .hero-inner { min-height: 650px; }
+      .hero::before { background-position: 63% center; }
+      .section-intro, .principles-grid { display: block; }
+      .section-intro p, .principles-intro { margin-top: 23px; }
+      .timeline { overflow-x: auto; grid-template-columns: repeat(5, minmax(145px, 1fr)); }
+      .era-panel { grid-template-columns: 1fr; }
+      .era-visual { min-height: 350px; }
+      .principle-list { margin-top: 45px; }
+    }
+    @media (max-width: 540px) {
+      h1 { font-size: 58px; }
+      .hero-copy p { font-size: 14px; }
+      .explorer { padding-top: 58px; }
+      .era-info { padding: 29px 24px 25px; }
+      .era-heading h2 { font-size: 34px; }
+      .era-heading { align-items: start; flex-direction: column; }
+      .era-heading .date { text-align: left; }
+      .facts, .principle-list { grid-template-columns: 1fr; gap: 26px; }
+      .era-footer { align-items: flex-start; flex-direction: column; gap: 23px; }
+      .footer-inner { display: block; }
+      .footer-inner span:last-child { display: block; margin-top: 7px; }
+      .editor-modal { padding: 28px 22px; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="shell nav">
+      <a class="brand" href="#top" aria-label="Deep Time home"><span class="brand-mark">◒</span> DEEP TIME</a>
+      <nav class="nav-links" aria-label="Primary navigation">
+        <a href="#eras">The eras</a>
+        <a href="#principles">Read the record</a>
+      </nav>
+      <button class="editor-trigger" type="button" aria-controls="editor-modal" aria-expanded="false">▣ Private editor</button>
+      <span class="mono">A field guide / 01</span>
+    </div>
+  </header>
+
+  <section class="hero" id="top">
+    <div class="shell hero-inner">
+      <div class="hero-copy">
+        <div class="eyebrow mono">An illustrated history of life on Earth</div>
+        <h1>Before us,<br />a world in motion.</h1>
+        <p>Travel across 4.6 billion years of changing climates, strange bodies, and stubbornly inventive life.</p>
+        <div class="hero-meta">
+          <a class="scroll-cue mono" href="#eras"><span>↓</span> Begin the descent</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <main>
+    <section class="explorer" id="eras">
+      <div class="shell">
+        <div class="section-intro">
+          <h2>Five chapters.<br />One living planet.</h2>
+          <p>Deep time is too large to hold in the mind all at once. Use the timeline to move through the broad chapters of prehistoric life.</p>
+        </div>
+        <div class="timeline" role="tablist" aria-label="Geological eras">
+          <button class="era-tab active" role="tab" aria-selected="true" data-era="precambrian"><span class="tab-index mono">01</span><span class="tab-name">Precambrian</span><span class="tab-age mono">4,600–541 Ma</span></button>
+          <button class="era-tab" role="tab" aria-selected="false" data-era="paleozoic"><span class="tab-index mono">02</span><span class="tab-name">Paleozoic</span><span class="tab-age mono">541–252 Ma</span></button>
+          <button class="era-tab" role="tab" aria-selected="false" data-era="mesozoic"><span class="tab-index mono">03</span><span class="tab-name">Mesozoic</span><span class="tab-age mono">252–66 Ma</span></button>
+          <button class="era-tab" role="tab" aria-selected="false" data-era="cenozoic"><span class="tab-index mono">04</span><span class="tab-name">Cenozoic</span><span class="tab-age mono">66–2.6 Ma</span></button>
+          <button class="era-tab" role="tab" aria-selected="false" data-era="quaternary"><span class="tab-index mono">05</span><span class="tab-name">Quaternary</span><span class="tab-age mono">2.6 Ma–now</span></button>
+        </div>
+
+        <article class="era-panel" aria-live="polite">
+          <div class="era-visual" style="--era-image: url('https://images.unsplash.com/photo-1500534623283-312aade485b7?auto=format&fit=crop&w=1000&q=80')">
+            <div class="visual-top"><span class="mono">Now viewing</span><span class="mono era-count">01 / 05</span></div>
+            <div class="visual-bottom"><h3 class="visual-title">The first<br />experiment</h3><p class="visual-subtitle">A young planet finds its rhythm, and life begins quietly in the shallows.</p></div>
+          </div>
+          <div class="era-info">
+            <div class="era-heading"><h2 class="era-name">Precambrian</h2><div class="date mono era-date">4,600–541 million years ago</div></div>
+            <div class="facts">
+              <div class="fact"><h4>Plants &amp; producers</h4><ul class="plants"><li>Cyanobacteria</li><li>Algae &amp; stromatolites</li><li>Early single-celled life</li></ul></div>
+              <div class="fact"><h4>Animals &amp; consumers</h4><ul class="animals"><li>Microscopic eukaryotes</li><li>Ediacaran soft-bodies</li><li>Early jelly-like forms</li></ul></div>
+            </div>
+            <div class="era-footer"><p class="era-note">The longest chapter in Earth's story. Oxygen slowly accumulates in the atmosphere, changing everything that follows.</p><button class="next-button mono" type="button">Next era <span>→</span></button></div>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section class="principles" id="principles">
+      <div class="shell principles-grid">
+        <div><div class="eyebrow mono">How to read deep time</div><h2>Small clues.<br />Vast stories.</h2><p class="principles-intro">The fossil record is incomplete by nature. What survives is enough to reveal a planet that never stopped changing.</p></div>
+        <div class="principle-list">
+          <div class="principle"><span class="principle-number mono">01 / Layers</span><h3>Time leaves a stack.</h3><p>Rock layers preserve a rough order of events: oldest at the bottom, youngest at the top.</p></div>
+          <div class="principle"><span class="principle-number mono">02 / Adaptation</span><h3>Life keeps trying.</h3><p>Every extinction clears space for new experiments in form, habitat, and behavior.</p></div>
+          <div class="principle"><span class="principle-number mono">03 / Scale</span><h3>We arrive late.</h3><p>Modern humans appear in the final sliver of the planet's story, after almost everything else.</p></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div class="modal-backdrop" id="editor-modal" role="dialog" aria-modal="true" aria-labelledby="editor-title">
+    <div class="editor-modal">
+      <button class="modal-close" type="button" aria-label="Close editor">×</button>
+      <div class="editor-view" id="auth-view">
+        <div class="eyebrow mono">Private collection</div>
+        <h2 id="editor-title">Keep your own field notes.</h2>
+        <p class="modal-intro" id="auth-intro">Sign in with an approved username, then create a private passcode for this browser. Your additions will stay on this device.</p>
+        <form class="editor-form" id="auth-form">
+          <label for="username-input">Approved username <input id="username-input" type="text" autocomplete="username" autocapitalize="none" required /></label>
+          <label for="passcode-input">Private passcode <input id="passcode-input" type="password" minlength="6" autocomplete="new-password" required /></label>
+          <p class="editor-message" id="auth-message" role="status"></p>
+          <button class="editor-submit" type="submit" id="auth-submit">Create passcode</button>
+        </form>
+      </div>
+      <div class="editor-view" id="editor-view">
+        <div class="eyebrow mono">Editor unlocked</div>
+        <h2>Add to the record.</h2>
+        <p class="modal-intro">Add a plant or animal and a short note. It will appear in the selected era and stay saved in this browser.</p>
+        <form class="editor-form" id="entry-form">
+          <label for="entry-era">Era <select id="entry-era"><option value="precambrian">Precambrian</option><option value="paleozoic">Paleozoic</option><option value="mesozoic">Mesozoic</option><option value="cenozoic">Cenozoic</option><option value="quaternary">Quaternary</option></select></label>
+          <label for="entry-type">Category <select id="entry-type"><option value="plants">Plant / producer</option><option value="animals">Animal / consumer</option></select></label>
+          <label for="entry-name">Name <input id="entry-name" type="text" maxlength="60" placeholder="e.g. Glossopteris" required /></label>
+          <label for="entry-info">About it <textarea id="entry-info" maxlength="220" placeholder="A short note about its habitat, form, or role..." required></textarea></label>
+          <p class="editor-message" id="entry-message" role="status"></p>
+          <button class="editor-submit" type="submit">Add to this era</button>
+        </form>
+        <div class="editor-toolbar"><span class="editor-status">Saved only on this browser.</span><button class="logout-button" type="button">Lock editor</button></div>
+      </div>
+    </div>
+  </div>
+
+  <footer><div class="shell footer-inner"><span class="mono">Deep Time / A visual field guide</span><span>Made for the endlessly curious · Dates are approximate</span></div></footer>
+
+  <script>
+    const eras = {
+      precambrian: { name: 'Precambrian', date: '4,600–541 million years ago', count: '01 / 05', title: 'The first<br>experiment', subtitle: 'A young planet finds its rhythm, and life begins quietly in the shallows.', image: 'https://images.unsplash.com/photo-1500534623283-312aade485b7?auto=format&fit=crop&w=1000&q=80', plants: ['Cyanobacteria', 'Algae & stromatolites', 'Early single-celled life'], animals: ['Microscopic eukaryotes', 'Ediacaran soft-bodies', 'Early jelly-like forms'], note: "The longest chapter in Earth's story. Oxygen slowly accumulates in the atmosphere, changing everything that follows." },
+      paleozoic: { name: 'Paleozoic', date: '541–252 million years ago', count: '02 / 05', title: 'The great<br>colonization', subtitle: 'Life leaves the water, grows armor, and spreads into a green new world.', image: 'https://images.unsplash.com/photo-1511497584788-876760111969?auto=format&fit=crop&w=1000&q=80', plants: ['Giant club mosses', 'Ferns & horsetails', 'Seed ferns'], animals: ['Trilobites', 'Early amphibians', 'Dimetrodon'], note: 'Forests transform the continents. The era closes with the largest mass extinction the planet has ever known.' },
+      mesozoic: { name: 'Mesozoic', date: '252–66 million years ago', count: '03 / 05', title: 'The age<br>of giants', subtitle: 'Continents split apart beneath a canopy of conifers, cycads, and towering dinosaurs.', image: 'https://images.unsplash.com/photo-1546182990-dffeafbe841d?auto=format&fit=crop&w=1000&q=80', plants: ['Conifers & cycads', 'Ginkgoes', 'First flowering plants'], animals: ['Stegosaurus', 'Tyrannosaurus rex', 'Archaeopteryx'], note: 'Dinosaurs dominate land for more than 180 million years, while the first birds and mammals quietly diversify around them.' },
+      cenozoic: { name: 'Cenozoic', date: '66–2.6 million years ago', count: '04 / 05', title: 'The world<br>remade', subtitle: 'After the dinosaurs, mammals take their turn in a cooler, more familiar world.', image: 'https://images.unsplash.com/photo-1550358864-518f202c02ba?auto=format&fit=crop&w=1000&q=80', plants: ['Flowering grasslands', 'Oaks & broadleaf forests', 'Modern flowering plants'], animals: ['Early horses', 'Woolly rhinoceros', 'Sabre-toothed cats'], note: 'Mammals and birds expand into the ecological spaces left behind, while grasslands reshape the continents.' },
+      quaternary: { name: 'Quaternary', date: '2.6 million years ago–now', count: '05 / 05', title: 'A familiar<br>strangeness', subtitle: 'Ice advances and retreats. One primate learns to look backward through time.', image: 'https://images.unsplash.com/photo-1519681393784-d120267933ba?auto=format&fit=crop&w=1000&q=80', plants: ['Tundra grasses', 'Conifers', 'Modern plant communities'], animals: ['Woolly mammoths', 'Giant ground sloths', 'Homo sapiens'], note: 'We live in an interglacial pause. The record is still being written, and our choices are part of the next layer.' }
+    };
+
+    const tabs = [...document.querySelectorAll('.era-tab')];
+    const approvedUsernames = ['owner'];
+    const storageKey = 'deep-time-private-eras';
+    const passcodeKey = 'deep-time-private-passcode';
+    const savedEras = localStorage.getItem(storageKey);
+    if (savedEras) {
+      try { Object.assign(eras, JSON.parse(savedEras)); } catch (error) { localStorage.removeItem(storageKey); }
+    }
+    const modal = document.querySelector('.modal-backdrop');
+    const trigger = document.querySelector('.editor-trigger');
+    const authView = document.querySelector('#auth-view');
+    const editorView = document.querySelector('#editor-view');
+    const authIntro = document.querySelector('#auth-intro');
+    const authSubmit = document.querySelector('#auth-submit');
+    const authMessage = document.querySelector('#auth-message');
+    const entryMessage = document.querySelector('#entry-message');
+    const entryEra = document.querySelector('#entry-era');
+    let editorUnlocked = false;
+    const showList = (selector, entries) => {
+      const list = document.querySelector(selector);
+      list.replaceChildren(...entries.map(entry => {
+        const item = typeof entry === 'string' ? { name: entry, info: '' } : entry;
+        const listItem = document.createElement('li');
+        listItem.append(item.name);
+        if (item.info) {
+          const detail = document.createElement('span');
+          detail.className = 'entry-info';
+          detail.textContent = item.info;
+          listItem.append(detail);
+        }
+        return listItem;
+      }));
+    };
+    const setEra = (key) => {
+      const era = eras[key];
+      const index = Object.keys(eras).indexOf(key);
+      document.querySelector('.era-name').textContent = era.name;
+      document.querySelector('.era-date').textContent = era.date;
+      document.querySelector('.era-count').textContent = era.count;
+      document.querySelector('.visual-title').innerHTML = era.title;
+      document.querySelector('.visual-subtitle').textContent = era.subtitle;
+      document.querySelector('.era-note').textContent = era.note;
+      document.querySelector('.era-visual').style.setProperty('--era-image', `url('${era.image}')`);
+      showList('.plants', era.plants);
+      showList('.animals', era.animals);
+      entryEra.value = key;
+      tabs.forEach((tab, tabIndex) => { const active = tabIndex === index; tab.classList.toggle('active', active); tab.setAttribute('aria-selected', active); });
+    };
+    tabs.forEach(tab => tab.addEventListener('click', () => setEra(tab.dataset.era)));
+    document.querySelector('.next-button').addEventListener('click', () => setEra(Object.keys(eras)[(Object.keys(eras).indexOf(tabs.find(tab => tab.classList.contains('active')).dataset.era) + 1) % 5]));
+    const openModal = () => {
+      modal.classList.add('open');
+      trigger.setAttribute('aria-expanded', 'true');
+      authView.classList.toggle('visible', !editorUnlocked);
+      editorView.classList.toggle('visible', editorUnlocked);
+      if (!localStorage.getItem(passcodeKey)) {
+        authIntro.textContent = 'Sign in with an approved username, then create a private passcode for this browser. Your additions will stay on this device.';
+        authSubmit.textContent = 'Create passcode';
+      } else {
+        authIntro.textContent = 'Enter an approved username and your private passcode to manage your field notes. Your additions stay in this browser.';
+        authSubmit.textContent = 'Unlock editor';
+      }
+    };
+    const closeModal = () => { modal.classList.remove('open'); trigger.setAttribute('aria-expanded', 'false'); };
+    trigger.addEventListener('click', openModal);
+    document.querySelector('.modal-close').addEventListener('click', closeModal);
+    modal.addEventListener('click', event => { if (event.target === modal) closeModal(); });
+    document.querySelector('#auth-form').addEventListener('submit', event => {
+      event.preventDefault();
+      const username = document.querySelector('#username-input').value.trim().toLowerCase();
+      const passcode = document.querySelector('#passcode-input').value;
+      const storedPasscode = localStorage.getItem(passcodeKey);
+      if (!approvedUsernames.includes(username)) {
+        authMessage.textContent = 'This username is not approved for editing.';
+        return;
+      }
+      if (!storedPasscode) localStorage.setItem(passcodeKey, passcode);
+      if (!storedPasscode || storedPasscode === passcode) {
+        editorUnlocked = true;
+        authMessage.textContent = '';
+        openModal();
+      } else authMessage.textContent = 'That passcode does not match.';
+    });
+    document.querySelector('#entry-form').addEventListener('submit', event => {
+      event.preventDefault();
+      const era = eras[entryEra.value];
+      const category = document.querySelector('#entry-type').value;
+      era[category].push({ name: document.querySelector('#entry-name').value.trim(), info: document.querySelector('#entry-info').value.trim() });
+      localStorage.setItem(storageKey, JSON.stringify(eras));
+      setEra(entryEra.value);
+      event.target.reset();
+      entryEra.value = Object.keys(eras).find(key => eras[key] === era);
+      entryMessage.textContent = 'Added to your field notes.';
+    });
+    document.querySelector('.logout-button').addEventListener('click', () => { editorUnlocked = false; closeModal(); });
+    setEra('precambrian');
+  </script>
+</body>
+</html>
